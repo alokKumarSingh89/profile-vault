@@ -36,7 +36,7 @@ A developer or CI system needs a consistent way to verify that the project is he
 
 **Acceptance Scenarios**:
 
-1. **Given** the API is running, **When** the health and readiness endpoints are requested, **Then** the service reports an operational status suitable for local development and future container orchestration.
+1. **Given** the API process is running, **When** `GET /health/live` is requested, **Then** it returns HTTP 200 regardless of PostgreSQL availability. **When** `GET /health/ready` is requested, **Then** it returns HTTP 200 when all required dependencies are available and HTTP 503 Service Unavailable when a required dependency is unavailable.
 2. **Given** the monorepo quality commands are run, **When** the developer executes linting, formatting, type checking, unit tests, and builds, **Then** the commands complete successfully and can be used in CI.
 3. **Given** a CI environment, **When** the project validation commands are run from the repository root, **Then** they do not depend on undocumented machine-specific configuration.
 
@@ -53,7 +53,7 @@ A team needs a clear foundation that supports future product features without em
 **Acceptance Scenarios**:
 
 1. **Given** the monorepo structure, **When** future features are added, **Then** they can live in the intended web, API, and shared package boundaries without breaking the foundation.
-2. **Given** the design requirements from the constitution, **When** the web shell is built, **Then** it is compatible with future premium public UI patterns, accessibility, dark mode, and SEO support.
+2. **Given** the foundation web shell, **When** its structure is verified, **Then** it uses semantic HTML, accessible document metadata/title and viewport metadata, remains responsive, avoids an unnecessary heavy UI library, and does not prevent future light/dark themes, design tokens, reduced-motion support, or Next.js metadata/SEO use.
 
 ---
 
@@ -73,12 +73,12 @@ A team needs a clear foundation that supports future product features without em
 - **FR-003**: The project MUST include a Prisma 7 database package that establishes reusable infrastructure and current Prisma configuration conventions without defining ProfileVault business models.
 - **FR-004**: The web application MUST be built with Next.js, React, TypeScript, strict TypeScript settings, and the App Router.
 - **FR-005**: The web application MUST provide a minimal application shell that proves the app can run successfully without implementing the final portfolio experience.
-- **FR-006**: The web foundation MUST be compatible with the constitution’s future requirements for premium design, responsive layouts, accessibility, light/dark themes, and SEO.
+- **FR-006**: The web foundation MUST provide semantic HTML, accessible document metadata/title, viewport metadata, and a responsive foundation; MUST avoid an unnecessary heavy UI library; and MUST NOT prevent future light/dark theme support, design tokens, reduced-motion compatibility, or use of Next.js metadata/SEO. This requirement does not require a final visual design, complete theme system, portfolio components, animations, or a full design system.
 - **FR-007**: The API application MUST be built with NestJS and TypeScript and use strict TypeScript configuration.
-- **FR-008**: The API MUST expose health and readiness endpoints suitable for local development and future orchestrator or container health checks.
+- **FR-008**: The API MUST expose `GET /health/live` and `GET /health/ready` suitable for local development and future orchestrator or container health checks. Liveness MUST return HTTP 200 when the API process is healthy and MUST NOT depend on PostgreSQL. Readiness MUST return HTTP 200 when all required dependencies are available and HTTP 503 Service Unavailable when any required dependency, including PostgreSQL, is unavailable. Public responses MUST NOT expose connection strings, credentials, host details, stack traces, or internal exception messages.
 - **FR-009**: The project MUST provide clear environment-variable conventions for local development and CI safety.
-- **FR-010**: The repository MUST define consistent monorepo commands for development, linting, formatting, type checking, unit testing, and production build execution.
-- **FR-011**: The monorepo MUST support future integration and end-to-end testing without requiring ad hoc local setup.
+- **FR-010**: The repository MUST define consistent monorepo commands for development, linting, formatting, type checking, unit testing, integration testing, end-to-end testing, and production build execution.
+- **FR-011**: The foundation MUST establish and document conventions for unit tests colocated with source, integration tests under the owning workspace's `tests/integration/` directory, and API end-to-end tests under `apps/api/test/` using `*.e2e-spec.ts` filenames. Unit, integration, and end-to-end tests MUST have documented repository-root commands. Feature 001 MUST NOT add product-level integration or end-to-end suites or empty test suites solely for future use; the API health end-to-end test may be the initial proof that the end-to-end setup works.
 - **FR-012**: The project MUST be structured so CI can execute the relevant validation commands without depending on developer-specific machine configuration.
 - **FR-013**: The monorepo MUST not include business-feature implementations for authentication, profile management, document sharing, resume generation, or other non-goal domains in this feature.
 - **FR-014**: Shared TypeScript packages MUST be limited to justified infrastructure boundaries, and the repository MUST avoid unnecessary package proliferation.
@@ -99,10 +99,10 @@ A team needs a clear foundation that supports future product features without em
 
 - **SC-001**: A developer can install dependencies, configure the documented environment, and start the local PostgreSQL service without undocumented setup steps.
 - **SC-002**: The web application and API can both run successfully in the local development environment after the documented setup flow.
-- **SC-003**: The API provides health or readiness information appropriate for local validation and future deployment checks.
+- **SC-003**: `GET /health/live` returns HTTP 200 without depending on PostgreSQL; `GET /health/ready` returns HTTP 200 when required dependencies are available and HTTP 503 when a required dependency is unavailable, without exposing sensitive or internal details.
 - **SC-004**: The monorepo’s linting, formatting, type checking, testing, and build commands run successfully in a clean environment and can be used in CI.
 - **SC-005**: The repository structure supports future feature work without embedding business features that are explicitly out of scope for this foundation feature.
-- **SC-006**: The foundation remains compatible with the governance requirements in the ProfileVault constitution regarding security, accessibility, design quality, and production-readiness.
+- **SC-006**: The foundation web shell passes checks for semantic HTML, accessible title/document metadata, viewport metadata, responsive layout support, no unnecessary heavy UI library, and no foundation-level choices that prevent future light/dark themes, design tokens, reduced-motion support, or Next.js metadata/SEO. It does not implement final visual design, a complete theme system, portfolio components, animations, or a full design system.
 
 ## Assumptions
 

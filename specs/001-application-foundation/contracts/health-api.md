@@ -12,7 +12,7 @@ Returns whether the API process is alive.
 
 ### Semantics
 
-- Must succeed when the NestJS process is running.
+- Returns HTTP 200 when the NestJS process is running.
 - Must not depend on PostgreSQL availability.
 - Must report a healthy status for the process itself.
 
@@ -34,7 +34,8 @@ Returns whether the API is ready to serve traffic.
 ### Semantics
 
 - Must verify required dependencies, including PostgreSQL connectivity when configured.
-- Must fail when readiness dependencies are unavailable.
+- Returns HTTP 200 when all required dependencies are available.
+- Returns HTTP 503 Service Unavailable when a required dependency, including PostgreSQL, is unavailable.
 - Must be safe to use by orchestrators and local health checks.
 
 ### Example response
@@ -63,5 +64,6 @@ Returns whether the API is ready to serve traffic.
 
 ## Security requirements
 
-- These endpoints are operational only and must not expose secrets, credentials, stack traces, or internal infrastructure details.
+- These endpoints are operational only and must not expose connection strings, credentials, host details, stack traces, internal exception messages, or other internal infrastructure details.
 - Error responses must remain concise and safe for client consumption.
+- Readiness failures must use the minimal failure response shape shown above and must not include raw dependency error information.

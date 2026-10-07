@@ -16,7 +16,7 @@ Feature 001 establishes the production-quality technical foundation for ProfileV
 
 **Storage**: PostgreSQL through Docker for local development; Prisma schema and client in packages/database
 
-**Testing**: Vitest for unit tests; health endpoint tests for process and readiness behavior; future integration/E2E structure reserved in the repo layout
+**Testing**: Vitest; unit tests colocated with source, integration tests in each owning workspace's `tests/integration/`, and API end-to-end tests in `apps/api/test/` with `*.e2e-spec.ts` filenames. Root commands are `pnpm test`, `pnpm test:integration`, and `pnpm test:e2e`. The health endpoint end-to-end test is the initial proof of the E2E setup; no product-level integration/E2E suites or empty future test suites are added in Feature 001.
 
 **Target Platform**: Local developer machines for development; CI containerized validation for install, lint, formatting, type check, unit tests, and build
 
@@ -130,7 +130,7 @@ The planning work resolved the primary architectural unknowns:
 
 ### Application design
 
-The web app is intentionally minimal: a small app shell, root layout, and a simple landing page that demonstrates the app boots successfully. No premium portfolio UI or large component library is introduced in this feature. Instead, it uses a minimal structure that can support future design tokens, accessibility, light/dark themes, responsive layouts, and SEO work without rework.
+The web app is intentionally minimal: a small app shell, root layout, and a simple landing page that demonstrates the app boots successfully. No premium portfolio UI or large component library is introduced in this feature. The foundation uses semantic HTML, accessible document metadata/title, viewport metadata, and responsive layout support; its choices do not prevent future light/dark themes, design tokens, reduced-motion support, or Next.js metadata/SEO use. These are foundation compatibility checks only, not implementation of a visual design or design system.
 
 ### API design
 
@@ -138,7 +138,7 @@ The API begins with a thin bootstrap module and health module. Health endpoints 
 
 ### Database design
 
-The database package will include the Prisma schema and client wiring needed to validate connectivity, establish the database runtime contract, and support readiness checks. It will not include ProfileVault business models. The schema can be intentionally empty or include only a minimal metadata table needed for readiness validation, depending on the chosen Prisma setup, but must not represent domain entities.
+The `packages/database` package is the single owner of all Prisma infrastructure and will use Prisma 7 with the PostgreSQL driver-adapter architecture. It will include the schema and client wiring needed to validate connectivity and support readiness checks, but will not include ProfileVault domain models. Feature 001 MUST NOT create an artificial database table for health or readiness. PostgreSQL readiness MUST use a lightweight connectivity operation such as `SELECT 1` through `packages/database`.
 
 ### Configuration design
 
@@ -146,7 +146,7 @@ A shared config package will validate environment variables and expose typed con
 
 ### Testing design
 
-Unit tests will cover the health endpoints and config validation logic. The repository will reserve folders for future integration and E2E testing, but Feature 001 will not add unrelated product-level tests. Health tests must include both healthy and failing database conditions so readiness is properly exerciseable.
+Unit tests colocated with source use `*.test.ts` or `*.test.tsx` and run with `pnpm test`. Future integration tests belong under the owning app or package's `tests/integration/` and run with `pnpm test:integration`. API end-to-end tests belong in `apps/api/test/` with `*.e2e-spec.ts` filenames and run with `pnpm test:e2e`. The health endpoint end-to-end test is the initial proof of this setup. Feature 001 does not add product-level integration/E2E suites or empty suites solely for future use. Health tests cover readiness success and failure, liveness independence from PostgreSQL, HTTP 200/503 semantics, and safe public responses.
 
 ### CI design
 
@@ -157,6 +157,9 @@ CI will run reproducible install and validation commands from the repo root:
 - pnpm format:check
 - pnpm typecheck
 - pnpm test
+- pnpm test
+- pnpm test:integration
+- pnpm test:e2e
 - pnpm build
 
 This ensures local and CI behavior remain aligned and does not depend on any developer-specific environment state.

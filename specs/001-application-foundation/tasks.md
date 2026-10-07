@@ -16,11 +16,11 @@
 
 **Purpose**: Establish the workspace, toolchain, and package structure required by the plan.
 
-- [ ] T001 Create the root monorepo structure and config files in `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `eslint.config.js`, `prettier.config.js`, `vitest.config.ts`, `.env.example`, `.npmrc`, and `README.md`.
+- [ ] T001 Create the root monorepo structure and config files in `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `eslint.config.js`, `prettier.config.js`, `vitest.config.ts`, `.env.example`, `.npmrc`, and `README.md`; configure Vitest discovery for the documented unit, integration, and API E2E test conventions without creating empty test suites.
 - [ ] T002 [P] Create the `apps/web` workspace in `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/next.config.ts`, and `apps/web/app/layout.tsx`.
 - [ ] T003 [P] Create the `apps/api` workspace and minimal NestJS bootstrap in `apps/api/package.json`, `apps/api/tsconfig.json`, `apps/api/src/main.ts`, and `apps/api/src/app.module.ts`. Do not add health endpoints here.
 - [ ] T004 [P] Create the `packages/database` package scaffold and empty, non-domain Prisma schema in `packages/database/package.json`, `packages/database/tsconfig.json`, and `packages/database/prisma/schema.prisma`; reserve `packages/database/src/index.ts` and `packages/database/src/client.ts` implementation for T011.
-- [ ] T005 [P] Create the `packages/config` runtime validation package structure in `packages/config/package.json`, `packages/config/tsconfig.json`, `packages/config/src/index.ts`, and `packages/config/src/env.ts`.
+- [ ] T005 [P] Create only the `packages/config` package-level scaffold in `packages/config/package.json` and `packages/config/tsconfig.json`; do not create source placeholders.
 - [ ] T006 [P] Create the `packages/contracts` placeholder package in `packages/contracts/package.json`, `packages/contracts/tsconfig.json`, and `packages/contracts/src/index.ts`.
 - [ ] T007 Create the Docker PostgreSQL setup in `docker/postgres/docker-compose.yml` and `docker/postgres/.env.example`.
 - [ ] T008 Define the Node.js 20 LTS and pnpm toolchain in `.nvmrc` or `.node-version`, `package.json` `packageManager` and `engines`, and `README.md` for consistent local and CI use.
@@ -33,12 +33,12 @@
 
 **⚠️ CRITICAL**: User-story work depends on completion of this phase.
 
-- [ ] T009 Implement root workspace scripts in `package.json` for `dev`, `dev:web`, `dev:api`, `lint`, `format`, `format:check`, `typecheck`, `test`, and `build`.
+- [ ] T009 Implement root workspace scripts in `package.json` for `dev`, `dev:web`, `dev:api`, `lint`, `format`, `format:check`, `typecheck`, `test` (unit), `test:integration`, `test:e2e`, and `build`; integration discovery must pass when no integration suite exists yet.
 - [ ] T010 [P] Implement environment validation and fail-fast configuration loading in `packages/config/src/env.ts` and `packages/config/src/index.ts`, ensuring invalid or missing required values fail without exposing secrets.
 - [ ] T011 Implement the Prisma 7 client in `packages/database/src/client.ts` and `packages/database/src/index.ts` using the PostgreSQL driver-adapter architecture; keep all Prisma infrastructure in `packages/database`.
 - [ ] T012 Add a lightweight PostgreSQL connectivity helper in `packages/database/src/health.ts`, using the client from T011 and a query such as `SELECT 1`; do not create a database table for health tracking.
 - [ ] T013 [P] Add config validation tests in `packages/config/src/env.test.ts` or the project's designated unit-test location to verify fail-fast behavior and that error output does not expose secret values.
-- [ ] T014 Document installation, environment setup, Docker PostgreSQL startup, and local app startup in `README.md` and `specs/001-application-foundation/quickstart.md`.
+- [ ] T014 Document installation, environment setup, Docker PostgreSQL startup, local app startup, test locations, test commands, and the no-empty-suite convention in `README.md` and `specs/001-application-foundation/quickstart.md`.
 
 **Checkpoint**: Shared workspace, configuration, database connectivity, and test infrastructure are ready for user stories.
 
@@ -59,6 +59,7 @@
 
 - [ ] T017 [US1] Implement the minimal Next.js app shell in `apps/web/app/page.tsx` and `apps/web/app/globals.css` without adding final portfolio design or a large component library.
 - [ ] T018 [US1] Wire the web app to typed configuration values in `apps/web/lib/config.ts` or the equivalent minimal runtime config layer.
+- [ ] T019 [US1] Verify the foundation UI constraints in `apps/web/app/layout.tsx`, `apps/web/app/page.tsx`, `apps/web/app/globals.css`, `apps/web/next.config.ts`, and `apps/web/package.json`: semantic HTML, accessible document title/metadata, viewport metadata, responsive foundation, no unnecessary heavy UI library, and no choices that prevent future light/dark themes, design tokens, reduced-motion support, or Next.js metadata/SEO. Do not add final visual design, a complete theme system, portfolio components, animations, or a full design system.
 
 **Checkpoint**: The minimal web shell and API bootstrap are independently testable and runnable, with PostgreSQL run through Docker.
 
@@ -72,11 +73,11 @@
 
 ### Tests for User Story 2
 
-- [ ] T019 [US2] Add behavior tests in `apps/api/test/health.e2e-spec.ts` for successful readiness when PostgreSQL is available, failed/degraded readiness when it is unavailable, and successful liveness in both conditions. Assert that public error responses do not expose secrets, stack traces, or internal infrastructure details.
+- [ ] T020 [US2] Add API end-to-end behavior tests in `apps/api/test/health.e2e-spec.ts` verifying HTTP 200 for healthy liveness with PostgreSQL readiness simulated as available and unavailable, HTTP 200 for readiness when required dependencies are available, and HTTP 503 Service Unavailable when PostgreSQL readiness fails. Use a controlled readiness-probe test double so the HTTP tests do not require a live PostgreSQL instance. Verify public response bodies do not expose connection strings, credentials, host details, stack traces, or internal exception messages.
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Implement the health module, `GET /health/live`, and `GET /health/ready` in `apps/api/src/health/health.module.ts`, `apps/api/src/health/health.controller.ts`, `apps/api/src/health/health.service.ts`, and `apps/api/src/app.module.ts`. Liveness must report process state only and never depend on PostgreSQL; readiness must use the database connectivity helper from `packages/database/src/health.ts`. Keep responses aligned with `specs/001-application-foundation/contracts/health-api.md` and safe from secret or internal-detail leakage.
+- [ ] T021 [US2] Implement the health module, `GET /health/live`, and `GET /health/ready` in `apps/api/src/health/health.module.ts`, `apps/api/src/health/health.controller.ts`, `apps/api/src/health/health.service.ts`, and `apps/api/src/app.module.ts`. Liveness must return HTTP 200 for a healthy process and never depend on PostgreSQL; readiness must return HTTP 200 when required dependencies are available and HTTP 503 Service Unavailable when one is unavailable, using the database connectivity helper from `packages/database/src/health.ts`. Keep public response bodies minimal and aligned with `specs/001-application-foundation/contracts/health-api.md`.
 
 **Checkpoint**: Health endpoints have one implementation owner and their required healthy/degraded behavior is covered by one focused test task.
 
@@ -90,8 +91,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Create `.github/workflows/ci.yml` to use the repository's Node.js and pnpm version contract, install with `pnpm install --frozen-lockfile`, and run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, and `pnpm build` in a clean environment.
-- [ ] T022 [US3] Configure linting, formatting, type-checking, and tests so they do not require runtime secrets or a running PostgreSQL instance.
+- [ ] T022 [US3] Create `.github/workflows/ci.yml` to use the repository's Node.js and pnpm version contract, install with `pnpm install --frozen-lockfile`, and run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:integration`, `pnpm test:e2e`, and `pnpm build` in a clean environment.
+- [ ] T023 [US3] Configure linting, formatting, type-checking, and tests so they do not require runtime secrets or a running PostgreSQL instance.
 
 **Checkpoint**: CI and local quality checks use the same toolchain and do not assume developer-specific runtime state.
 
@@ -101,8 +102,8 @@
 
 **Purpose**: Confirm the completed foundation remains within scope and meets all required validation criteria.
 
-- [ ] T023 Review the repository structure against the plan and constitution: confirm `packages/database` is the only Prisma infrastructure owner, Prisma 7 uses the PostgreSQL driver adapter, no artificial health table exists, and no business/domain features were introduced.
-- [ ] T024 Run final verification from `specs/001-application-foundation/quickstart.md`: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, and `pnpm build`, plus the documented clean-start workflow including dependency installation, environment setup, Docker PostgreSQL startup, and app startup.
+- [ ] T024 Review the repository structure against the plan and constitution: confirm `packages/database` is the only Prisma infrastructure owner, Prisma 7 uses the PostgreSQL driver adapter, no artificial health table exists, and no business/domain features were introduced.
+- [ ] T025 Run final verification from `specs/001-application-foundation/quickstart.md`: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:integration`, `pnpm test:e2e`, and `pnpm build`, plus the documented clean-start workflow including dependency installation, environment setup, Docker PostgreSQL startup, and app startup.
 
 ---
 

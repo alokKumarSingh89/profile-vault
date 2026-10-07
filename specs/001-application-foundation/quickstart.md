@@ -24,7 +24,16 @@ Run the following from the repository root:
 - pnpm format:check
 - pnpm typecheck
 - pnpm test
+- pnpm test:integration
+- pnpm test:e2e
 - pnpm build
+
+## Testing conventions
+
+- Unit tests live next to their source as `*.test.ts` or `*.test.tsx` and run with `pnpm test`.
+- Future integration tests live under the owning app or package's `tests/integration/` directory and run with `pnpm test:integration`.
+- API end-to-end tests live in `apps/api/test/` with `*.e2e-spec.ts` filenames and run with `pnpm test:e2e`. The health endpoint end-to-end test is the initial proof of this setup.
+- Feature 001 does not add product-level integration suites or empty test suites solely for future use. The integration command may report that no matching tests exist until a feature adds a suite.
 
 ## Local app startup
 
@@ -39,8 +48,9 @@ Expected results:
 
 ## Health validation
 
-- GET /health/live should respond with a healthy status even when PostgreSQL is unavailable.
-- GET /health/ready should respond with a readiness status that reflects PostgreSQL availability.
+- `GET /health/live` returns HTTP 200 when the API process is healthy, including when PostgreSQL is unavailable.
+- `GET /health/ready` returns HTTP 200 when required dependencies are available and HTTP 503 Service Unavailable when a required dependency, including PostgreSQL, is unavailable.
+- Public health responses do not expose connection strings, credentials, host details, stack traces, or internal exception messages.
 
 ## CI-equivalent validation
 
