@@ -16,9 +16,9 @@ Feature 001 establishes the production-quality technical foundation for ProfileV
 
 **Storage**: PostgreSQL through Docker for local development; Prisma schema and client in packages/database
 
-**Testing**: Vitest; unit tests colocated with source, integration tests in each owning workspace's `tests/integration/`, and API end-to-end tests in `apps/api/test/` with `*.e2e-spec.ts` filenames. Root commands are `pnpm test`, `pnpm test:integration`, and `pnpm test:e2e`. The health endpoint end-to-end test is the initial proof of the E2E setup; no product-level integration/E2E suites or empty future test suites are added in Feature 001.
+**Testing**: Vitest with category-specific discovery. Unit tests use `*.spec.ts` and `*.spec.tsx` colocated with source and run only with `pnpm test`; integration tests use `*.integration-spec.ts` under each owning workspace's `tests/integration/` and run only with `pnpm test:integration`; API E2E tests use `apps/api/test/*.e2e-spec.ts` and run only with `pnpm test:e2e`. Feature 001 includes one real PostgreSQL integration test for the database connectivity abstraction and API health/bootstrap E2E tests, but no product-level integration suites or empty future suites.
 
-**Target Platform**: Local developer machines for development; CI containerized validation for install, lint, formatting, type check, unit tests, and build
+**Target Platform**: Local developer machines for development; CI validation for install, lint, formatting, type check, unit tests, PostgreSQL-backed integration tests, application E2E tests, and build
 
 **Project Type**: Web application + API service + shared infrastructure monorepo
 
@@ -67,6 +67,7 @@ profile-vault/
 ├── apps/
 │   ├── web/
 │   │   ├── app/
+│   │   │   └── page.spec.tsx
 │   │   ├── components/
 │   │   ├── lib/
 │   │   ├── public/
@@ -80,12 +81,17 @@ profile-vault/
 │       │   ├── health/
 │       │   └── main.ts
 │       ├── test/
+│       │   ├── bootstrap.e2e-spec.ts
+│       │   └── health.e2e-spec.ts
 │       ├── package.json
 │       └── tsconfig.json
 ├── packages/
 │   ├── database/
 │   │   ├── prisma/
 │   │   ├── src/
+│   │   ├── tests/
+│   │   │   └── integration/
+│   │   │       └── connectivity.integration-spec.ts
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   ├── contracts/
@@ -146,7 +152,7 @@ A shared config package will validate environment variables and expose typed con
 
 ### Testing design
 
-Unit tests colocated with source use `*.test.ts` or `*.test.tsx` and run with `pnpm test`. Future integration tests belong under the owning app or package's `tests/integration/` and run with `pnpm test:integration`. API end-to-end tests belong in `apps/api/test/` with `*.e2e-spec.ts` filenames and run with `pnpm test:e2e`. The health endpoint end-to-end test is the initial proof of this setup. Feature 001 does not add product-level integration/E2E suites or empty suites solely for future use. Health tests cover readiness success and failure, liveness independence from PostgreSQL, HTTP 200/503 semantics, and safe public responses.
+Unit tests colocated with source use `*.spec.ts` or `*.spec.tsx` and run only with `pnpm test`; discovery explicitly excludes `*.integration-spec.ts` and `*.e2e-spec.ts` because those suffixes also match the broader `*.spec.ts` pattern. Integration tests use `*.integration-spec.ts` under the owning workspace's `tests/integration/` and run with `pnpm test:integration`. Feature 001 includes `packages/database/tests/integration/connectivity.integration-spec.ts`, which exercises the real database readiness abstraction against PostgreSQL and verifies a lightweight query such as `SELECT 1` succeeds. The test must close the database connection and must not mock PostgreSQL or create a table. API E2E tests use `apps/api/test/*.e2e-spec.ts` and run with `pnpm test:e2e`; health E2E tests verify HTTP behavior separately from database integration. Unit tests and static checks do not require PostgreSQL or runtime secrets.
 
 ### CI design
 
@@ -157,12 +163,11 @@ CI will run reproducible install and validation commands from the repo root:
 - pnpm format:check
 - pnpm typecheck
 - pnpm test
-- pnpm test
 - pnpm test:integration
 - pnpm test:e2e
 - pnpm build
 
-This ensures local and CI behavior remain aligned and does not depend on any developer-specific environment state.
+Before `pnpm test:integration`, CI provides a healthy PostgreSQL service with deterministic test-only database configuration. The connection configuration is supplied only to the integration-test process, and application logs must not print it or database credentials. Static checks and unit tests run without PostgreSQL or runtime secrets.
 
 ## Risk and tradeoff notes
 

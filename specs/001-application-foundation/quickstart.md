@@ -30,10 +30,10 @@ Run the following from the repository root:
 
 ## Testing conventions
 
-- Unit tests live next to their source as `*.test.ts` or `*.test.tsx` and run with `pnpm test`.
-- Future integration tests live under the owning app or package's `tests/integration/` directory and run with `pnpm test:integration`.
-- API end-to-end tests live in `apps/api/test/` with `*.e2e-spec.ts` filenames and run with `pnpm test:e2e`. The health endpoint end-to-end test is the initial proof of this setup.
-- Feature 001 does not add product-level integration suites or empty test suites solely for future use. The integration command may report that no matching tests exist until a feature adds a suite.
+- Unit tests use `*.spec.ts` or `*.spec.tsx`, are colocated with source, and run only with `pnpm test`; discovery excludes `*.integration-spec.ts` and `*.e2e-spec.ts` so the categories do not overlap.
+- Integration tests use `*.integration-spec.ts` under the owning app or package's `tests/integration/` directory and run only with `pnpm test:integration`. Feature 001 includes a real database connectivity integration test and requires PostgreSQL for this command.
+- API E2E tests use `apps/api/test/*.e2e-spec.ts` and run only with `pnpm test:e2e`.
+- Feature 001 adds infrastructure integration and application E2E coverage, but no product-level integration suites or empty test suites solely for future use.
 
 ## Local app startup
 
@@ -54,4 +54,4 @@ Expected results:
 
 ## CI-equivalent validation
 
-The repository must support the same validation commands in a clean CI environment using reproducible dependency installation rather than developer-machine state.
+CI uses reproducible dependency installation and provides PostgreSQL with deterministic test-only configuration before `pnpm test:integration`. Connection configuration is limited to the integration-test process; application logs must not print credentials or connection strings. Static checks and unit tests require neither PostgreSQL nor runtime secrets.
