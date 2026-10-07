@@ -32,6 +32,7 @@ Run the following from the repository root:
 - pnpm dev:api
 
 Expected results:
+
 - Next.js app starts successfully and serves the minimal shell.
 - NestJS API starts successfully and responds on the configured API port.
 - PostgreSQL is reachable through Docker and Prisma.

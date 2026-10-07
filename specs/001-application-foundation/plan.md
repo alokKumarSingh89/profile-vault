@@ -30,7 +30,7 @@ Feature 001 establishes the production-quality technical foundation for ProfileV
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 This feature passes the constitution check because it preserves the five core principles while staying within the intended scope of the foundation feature:
 
@@ -171,4 +171,3 @@ This ensures local and CI behavior remain aligned and does not depend on any dev
 ## Final Gate Check
 
 The plan is aligned with the current spec and constitution. It preserves the product intent, does not stray into domain work, and provides a strong technical foundation for future ProfileVault feature development.
-

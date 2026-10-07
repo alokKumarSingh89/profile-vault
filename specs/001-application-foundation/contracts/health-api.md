@@ -7,9 +7,11 @@ The API exposes operational health endpoints that support local development and 
 ## Endpoint: GET /health/live
 
 ### Purpose
+
 Returns whether the API process is alive.
 
 ### Semantics
+
 - Must succeed when the NestJS process is running.
 - Must not depend on PostgreSQL availability.
 - Must report a healthy status for the process itself.
@@ -26,9 +28,11 @@ Returns whether the API process is alive.
 ## Endpoint: GET /health/ready
 
 ### Purpose
+
 Returns whether the API is ready to serve traffic.
 
 ### Semantics
+
 - Must verify required dependencies, including PostgreSQL connectivity when configured.
 - Must fail when readiness dependencies are unavailable.
 - Must be safe to use by orchestrators and local health checks.

@@ -11,6 +11,7 @@ This feature does not define business domain models. It defines the minimal infr
 **Purpose**: Defines required runtime values for local development and CI.
 
 **Fields**:
+
 - APP_ENV: runtime mode, expected values such as development, test, or production
 - WEB_PORT: port used by the Next.js app
 - API_PORT: port used by the NestJS app
@@ -21,6 +22,7 @@ This feature does not define business domain models. It defines the minimal infr
 - NEXT_PUBLIC_API_URL: public API base URL used by the web shell
 
 **Rules**:
+
 - Required values must be validated at startup.
 - Secret values must never be printed in logs or error output.
 - Missing values must fail fast with actionable errors.
@@ -30,6 +32,7 @@ This feature does not define business domain models. It defines the minimal infr
 **Purpose**: Represents the local PostgreSQL service used by Prisma and readiness checks.
 
 **Fields**:
+
 - host: database host
 - port: database port
 - database: logical database name
@@ -37,6 +40,7 @@ This feature does not define business domain models. It defines the minimal infr
 - password: secret value handled via environment configuration
 
 **Rules**:
+
 - This service is local-only development infrastructure, not a business model.
 - Readiness checks may probe the database connectivity status.
 - Liveness checks must not depend on database availability.
@@ -46,11 +50,13 @@ This feature does not define business domain models. It defines the minimal infr
 **Purpose**: Represents API health and readiness status for operations monitoring.
 
 **Fields**:
+
 - status: ok or error
 - timestamp: ISO timestamp
 - checks: list of named checks and statuses
 
 **Rules**:
+
 - /health/live returns process health only.
 - /health/ready returns readiness only when the application and required dependencies are available.
 - Failure modes must be explicit and safe for future orchestration use.
