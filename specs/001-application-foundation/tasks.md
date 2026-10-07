@@ -17,33 +17,30 @@
 **Purpose**: Establish the workspace, toolchain, and package structure required by the plan.
 
 - [ ] T001 Create the root monorepo structure and config files in `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `eslint.config.js`, `prettier.config.js`, `vitest.config.ts`, `.env.example`, `.npmrc`, and `README.md`.
-- [ ] T002 [P] Create the `apps/web` workspace with the Next.js App Router shell in `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/next.config.ts`, and `apps/web/app/layout.tsx`.
-- [ ] T003 [P] Create the `apps/api` workspace with the NestJS bootstrap in `apps/api/package.json`, `apps/api/tsconfig.json`, `apps/api/src/main.ts`, and `apps/api/src/app.module.ts`.
-- [ ] T004 [P] Create the `packages/database` Prisma infrastructure in `packages/database/package.json`, `packages/database/tsconfig.json`, `packages/database/prisma/schema.prisma`, `packages/database/src/index.ts`, and `packages/database/src/client.ts`.
-- [ ] T005 [P] Create the `packages/config` runtime validation package in `packages/config/package.json`, `packages/config/tsconfig.json`, `packages/config/src/index.ts`, and `packages/config/src/env.ts`.
+- [ ] T002 [P] Create the `apps/web` workspace in `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/next.config.ts`, and `apps/web/app/layout.tsx`.
+- [ ] T003 [P] Create the `apps/api` workspace and minimal NestJS bootstrap in `apps/api/package.json`, `apps/api/tsconfig.json`, `apps/api/src/main.ts`, and `apps/api/src/app.module.ts`. Do not add health endpoints here.
+- [ ] T004 [P] Create the `packages/database` package scaffold and empty, non-domain Prisma schema in `packages/database/package.json`, `packages/database/tsconfig.json`, and `packages/database/prisma/schema.prisma`; reserve `packages/database/src/index.ts` and `packages/database/src/client.ts` implementation for T011.
+- [ ] T005 [P] Create the `packages/config` runtime validation package structure in `packages/config/package.json`, `packages/config/tsconfig.json`, `packages/config/src/index.ts`, and `packages/config/src/env.ts`.
 - [ ] T006 [P] Create the `packages/contracts` placeholder package in `packages/contracts/package.json`, `packages/contracts/tsconfig.json`, and `packages/contracts/src/index.ts`.
-- [ ] T007 Create the Docker PostgreSQL setup in `docker/postgres/docker-compose.yml` and `docker/postgres/.env.example` and document the local database startup in `README.md`.
-- [ ] T008 Define the Node toolchain decision in `.nvmrc` or `.node-version`, `package.json` `packageManager` and `engines`, and document the pinned version in `README.md` for local development and CI consistency.
+- [ ] T007 Create the Docker PostgreSQL setup in `docker/postgres/docker-compose.yml` and `docker/postgres/.env.example`.
+- [ ] T008 Define the Node.js 20 LTS and pnpm toolchain in `.nvmrc` or `.node-version`, `package.json` `packageManager` and `engines`, and `README.md` for consistent local and CI use.
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: Put the operating foundation in place before any user-story implementation begins.
+**Purpose**: Establish shared infrastructure prerequisites before user-story behavior is implemented.
 
-**⚠️ CRITICAL**: No user-story work can begin until this phase is complete.
+**⚠️ CRITICAL**: User-story work depends on completion of this phase.
 
-- [ ] T009 Implement the root workspace scripts in `package.json` for `dev`, `dev:web`, `dev:api`, `lint`, `format`, `format:check`, `typecheck`, `test`, and `build`.
-- [ ] T010 [P] Implement environment validation and fail-fast configuration loading in `packages/config/src/env.ts` and `packages/config/src/index.ts`, ensuring invalid or missing required values fail fast without exposing secret values in errors.
-- [ ] T011 Implement the Prisma 7 database client and connectivity abstraction in `packages/database/src/client.ts` and `packages/database/src/index.ts`, using the PostgreSQL driver-adapter architecture and keeping Prisma infrastructure limited to `packages/database`.
-- [ ] T012 [P] Add a lightweight PostgreSQL readiness check abstraction in `packages/database/src/health.ts` using a connectivity query such as `SELECT 1` without creating a domain table for health tracking.
-- [ ] T013 Create the API health module in `apps/api/src/health/health.module.ts` and `apps/api/src/health/health.controller.ts` with the `GET /health/live` endpoint defined without a database dependency.
-- [ ] T014 Create the API readiness module in `apps/api/src/health/health.service.ts` and wire it into `apps/api/src/app.module.ts` so `GET /health/ready` checks required dependencies including PostgreSQL connectivity.
-- [ ] T015 [P] Add health behavior tests in `apps/api/test/health.e2e-spec.ts` that prove liveness stays healthy when PostgreSQL is unavailable while readiness fails or reports degraded status when the database is unavailable.
-- [ ] T016 [P] Add config validation tests in `packages/config/src/env.test.ts` or the project's designated unit-test location to prove invalid configuration fails fast and secrets are not leaked in error output.
-- [ ] T017 Add root-level verification documentation in `README.md` and `specs/001-application-foundation/quickstart.md` covering the clean-start workflow: install, config, Docker PostgreSQL startup, app startup, and validation commands.
+- [ ] T009 Implement root workspace scripts in `package.json` for `dev`, `dev:web`, `dev:api`, `lint`, `format`, `format:check`, `typecheck`, `test`, and `build`.
+- [ ] T010 [P] Implement environment validation and fail-fast configuration loading in `packages/config/src/env.ts` and `packages/config/src/index.ts`, ensuring invalid or missing required values fail without exposing secrets.
+- [ ] T011 Implement the Prisma 7 client in `packages/database/src/client.ts` and `packages/database/src/index.ts` using the PostgreSQL driver-adapter architecture; keep all Prisma infrastructure in `packages/database`.
+- [ ] T012 Add a lightweight PostgreSQL connectivity helper in `packages/database/src/health.ts`, using the client from T011 and a query such as `SELECT 1`; do not create a database table for health tracking.
+- [ ] T013 [P] Add config validation tests in `packages/config/src/env.test.ts` or the project's designated unit-test location to verify fail-fast behavior and that error output does not expose secret values.
+- [ ] T014 Document installation, environment setup, Docker PostgreSQL startup, and local app startup in `README.md` and `specs/001-application-foundation/quickstart.md`.
 
-**Checkpoint**: Foundation ready - user-story implementation can now begin in parallel.
+**Checkpoint**: Shared workspace, configuration, database connectivity, and test infrastructure are ready for user stories.
 
 ---
 
@@ -51,45 +48,37 @@
 
 **Goal**: Establish a runnable monorepo foundation that a developer can install, configure, and start locally without business features.
 
-**Independent Test**: Clone the repo, install dependencies with pnpm, configure the documented env vars, start PostgreSQL with Docker, and run the web and API applications successfully.
+**Independent Test**: Install with pnpm, configure documented environment values, start PostgreSQL with Docker, and verify the web and API applications start successfully.
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Add a minimal startup smoke test for the web app in `apps/web/tests/app-shell.spec.tsx` to validate the app can render the basic shell without the final portfolio UI.
-- [ ] T019 [P] [US1] Add a minimal startup smoke test for the API in `apps/api/test/bootstrap.spec.ts` to validate the app module boots and the health module is registered.
+- [ ] T015 [P] [US1] Add a minimal web app startup smoke test in `apps/web/tests/app-shell.spec.tsx` that verifies the basic app shell renders without final portfolio UI.
+- [ ] T016 [P] [US1] Add an API bootstrap smoke test in `apps/api/test/bootstrap.spec.ts` that verifies the NestJS application module boots; do not require health endpoints in this test.
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Implement the minimal Next.js app shell in `apps/web/app/page.tsx` and `apps/web/app/globals.css` without introducing the final public portfolio design or a large component library.
-- [ ] T021 [US1] Wire the web app to typed config values in `apps/web/lib/config.ts` or the equivalent minimal runtime config layer so browser/runtime settings are explicit and future-safe.
-- [ ] T022 [US1] Add the API bootstrap and health module wiring in `apps/api/src/main.ts`, `apps/api/src/app.module.ts`, and the health files to ensure the service starts cleanly without business APIs.
-- [ ] T023 [US1] Ensure the web app and API remain runnable directly on the developer machine while PostgreSQL runs through Docker, as documented in `README.md` and `specs/001-application-foundation/quickstart.md`.
-- [ ] T024 [US1] Verify the repository structure preserves the established layout under `apps/`, `packages/`, and `docker/` without additional shared package proliferation.
+- [ ] T017 [US1] Implement the minimal Next.js app shell in `apps/web/app/page.tsx` and `apps/web/app/globals.css` without adding final portfolio design or a large component library.
+- [ ] T018 [US1] Wire the web app to typed configuration values in `apps/web/lib/config.ts` or the equivalent minimal runtime config layer.
 
-**Checkpoint**: At this point, User Story 1 should be fully functional and independently testable.
+**Checkpoint**: The minimal web shell and API bootstrap are independently testable and runnable, with PostgreSQL run through Docker.
 
 ---
 
 ## Phase 4: User Story 2 - Validate health semantics and dependency readiness (Priority: P1)
 
-**Goal**: Guarantee the API distinguishes between process liveness and dependency readiness and behaves correctly when PostgreSQL is unavailable.
+**Goal**: Guarantee the API distinguishes process liveness from dependency readiness and behaves correctly when PostgreSQL is unavailable.
 
-**Independent Test**: Hit `GET /health/live` and `GET /health/ready` in both healthy and degraded database conditions and confirm that the responses reflect the intended semantics.
+**Independent Test**: Exercise `GET /health/live` and `GET /health/ready` with PostgreSQL available and unavailable; verify response behavior matches the health API contract.
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Add a test in `apps/api/test/health.e2e-spec.ts` for the healthy-case readiness response when PostgreSQL is available.
-- [ ] T026 [P] [US2] Add a test in `apps/api/test/health.e2e-spec.ts` for the degraded-case readiness response when PostgreSQL is unavailable.
-- [ ] T027 [P] [US2] Add a test in `apps/api/test/health.e2e-spec.ts` confirming that `/health/live` remains successful even when PostgreSQL is unavailable.
+- [ ] T019 [US2] Add behavior tests in `apps/api/test/health.e2e-spec.ts` for successful readiness when PostgreSQL is available, failed/degraded readiness when it is unavailable, and successful liveness in both conditions. Assert that public error responses do not expose secrets, stack traces, or internal infrastructure details.
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Implement the `GET /health/live` endpoint in `apps/api/src/health/health.controller.ts` so it reports the process state only and never depends on PostgreSQL availability.
-- [ ] T029 [US2] Implement the `GET /health/ready` endpoint in `apps/api/src/health/health.controller.ts` and `apps/api/src/health/health.service.ts` so it checks dependency readiness including the database connection.
-- [ ] T030 [US2] Ensure error responses are safe and do not leak secrets, stack traces, or internal infrastructure details as documented in `specs/001-application-foundation/contracts/health-api.md`.
-- [ ] T031 [US2] Validate that the health contract and behavior align with the planning decisions in `specs/001-application-foundation/research.md` and `specs/001-application-foundation/contracts/health-api.md`.
+- [ ] T020 [US2] Implement the health module, `GET /health/live`, and `GET /health/ready` in `apps/api/src/health/health.module.ts`, `apps/api/src/health/health.controller.ts`, `apps/api/src/health/health.service.ts`, and `apps/api/src/app.module.ts`. Liveness must report process state only and never depend on PostgreSQL; readiness must use the database connectivity helper from `packages/database/src/health.ts`. Keep responses aligned with `specs/001-application-foundation/contracts/health-api.md` and safe from secret or internal-detail leakage.
 
-**Checkpoint**: At this point, both health checks should behave independently and correctly under failure conditions.
+**Checkpoint**: Health endpoints have one implementation owner and their required healthy/degraded behavior is covered by one focused test task.
 
 ---
 
@@ -97,33 +86,23 @@
 
 **Goal**: Ensure the repository supports reliable validation in local development and CI without developer-machine assumptions.
 
-**Independent Test**: Run the documented quality commands and the clean-start quickstart in a fresh environment and confirm they execute successfully.
-
-### Tests for User Story 3
-
-- [ ] T032 [P] [US3] Add a root-level validation checklist task in `README.md` or project docs that enumerates the commands for `lint`, `format:check`, `typecheck`, `test`, and `build`.
-- [ ] T033 [P] [US3] Add a CI validation plan in `.github/workflows/ci.yml` or the project’s equivalent workflow file that runs the reproducible install and validation commands from a clean environment.
+**Independent Test**: Verify CI installs reproducibly, uses the declared Node/pnpm toolchain, and runs quality checks without runtime secrets or a running PostgreSQL instance.
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Configure root CI validation in `.github/workflows/ci.yml` to run `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, and `pnpm build` without depending on local developer state.
-- [ ] T035 [US3] Verify the Node version pin and toolchain compatibility in `.nvmrc`, `.node-version`, or `package.json` `engines` and ensure local development and CI use the same version contract.
-- [ ] T036 [US3] Ensure linting, formatting, and type-checking do not require runtime secrets or a running PostgreSQL instance while still validating the workspace correctly.
-- [ ] T037 [US3] Run the documented clean-start validation workflow from `specs/001-application-foundation/quickstart.md` and record the expected results for final verification in the implementation review.
+- [ ] T021 [US3] Create `.github/workflows/ci.yml` to use the repository's Node.js and pnpm version contract, install with `pnpm install --frozen-lockfile`, and run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, and `pnpm build` in a clean environment.
+- [ ] T022 [US3] Configure linting, formatting, type-checking, and tests so they do not require runtime secrets or a running PostgreSQL instance.
 
-**Checkpoint**: At this point, the project foundation should be ready for future domain features without compromising CI or local developer workflow.
+**Checkpoint**: CI and local quality checks use the same toolchain and do not assume developer-specific runtime state.
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: Polish & Cross-Cutting Verification
 
-**Purpose**: Final verification that the foundation remains aligned with the spec, plan, and constitution.
+**Purpose**: Confirm the completed foundation remains within scope and meets all required validation criteria.
 
-- [ ] T038 [P] Review the final repo structure against the plan and constitution to confirm no business features, auth flows, document-sharing code, or resume-generation work were introduced in `apps/`, `packages/`, or `docker/`.
-- [ ] T039 [P] Check that the Prisma setup exists only in `packages/database` and that no second Prisma client or database setup was created under `apps/api`.
-- [ ] T040 [P] Confirm the Node version pin and package manager decision are documented consistently and remain aligned with local and CI environments.
-- [ ] T041 [P] Verify the health and configuration contracts remain minimal, explicit, and free from secret leakage, and that the contract docs reflect the current operational behavior.
-- [ ] T042 Run the final repository validation sequence from the project quickstart and confirm all required checks pass before the foundation is considered implementation-ready.
+- [ ] T023 Review the repository structure against the plan and constitution: confirm `packages/database` is the only Prisma infrastructure owner, Prisma 7 uses the PostgreSQL driver adapter, no artificial health table exists, and no business/domain features were introduced.
+- [ ] T024 Run final verification from `specs/001-application-foundation/quickstart.md`: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, and `pnpm build`, plus the documented clean-start workflow including dependency installation, environment setup, Docker PostgreSQL startup, and app startup.
 
 ---
 
@@ -131,72 +110,28 @@
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies - starts immediately.
-- **Foundational (Phase 2)**: Depends on Setup completion; blocks all user-story work.
-- **User Stories (Phase 3+)**: All depend on Phase 2 completion.
-- **Polish (Phase 6)**: Depends on all desired user stories being complete.
-
-### User Story Dependencies
-
-- **User Story 1 (P1)**: Can start after Phase 2; no dependency on other stories.
-- **User Story 2 (P1)**: Can start after Phase 2; should be independently testable with the health contract.
-- **User Story 3 (P2)**: Can start after Phase 2; verifies quality, CI, and environment discipline.
+- **Setup (Phase 1)**: No dependencies; establishes workspace and toolchain files.
+- **Foundational (Phase 2)**: Depends on Setup; provides shared config, database connectivity, scripts, and test infrastructure.
+- **User Stories (Phases 3-5)**: Depend on Foundational. User Stories 1, 2, and 3 can proceed independently after that phase; within User Story 2, write the behavior tests before implementing the health endpoints.
+- **Polish (Phase 6)**: Depends on all user stories being complete.
 
 ### Parallel Opportunities
 
-- Setup tasks marked [P] can proceed in parallel.
-- Foundational tasks marked [P] can proceed in parallel.
-- The user-story test tasks can be written in parallel within each story.
-- The polish tasks can run in parallel once implementation is complete.
-
----
-
-## Parallel Example: User Story 2
-
-```bash
-# Run health tests for readiness and liveness in parallel once the health module exists:
-Task: "Add a healthy-case readiness response test in apps/api/test/health.e2e-spec.ts"
-Task: "Add a degraded-case readiness response test in apps/api/test/health.e2e-spec.ts"
-Task: "Add a liveness test in apps/api/test/health.e2e-spec.ts"
-```
-
----
+- Setup tasks T002-T007 can proceed in parallel where their files do not overlap; T008 may proceed independently after the root manifest exists.
+- Config validation tests (T013) can proceed independently of the database tasks once the test infrastructure and config package structure exist.
+- User Story 1 smoke tests (T015-T016) can be authored independently.
+- User Story 3 CI setup can proceed independently of the app behavior tasks after the toolchain and root scripts are established.
 
 ## Implementation Strategy
 
-### MVP First (User Story 1 Only)
-
-1. Complete Phase 1: Setup.
-2. Complete Phase 2: Foundational.
-3. Complete Phase 3: User Story 1.
-4. Stop and validate the app shell, API bootstrap, and local setup.
-5. Proceed only after the minimum viable foundation is proven to run.
-
-### Incremental Delivery
-
-1. Complete Setup + Foundational -> foundation ready.
-2. Deliver User Story 1 -> app shell and bootability.
-3. Deliver User Story 2 -> health semantics and readiness contracts.
-4. Deliver User Story 3 -> CI, quality gates, and runtime discipline.
-5. Finish with polish, cross-cutting validation, and final constitution alignment checks.
-
-### Parallel Team Strategy
-
-With multiple developers:
-
-1. Team completes Setup + Foundational together.
-2. Once foundational work is done:
-   - Developer A: User Story 1
-   - Developer B: User Story 2
-   - Developer C: User Story 3
-3. Final polish runs after all user-story tasks are complete.
-
----
+1. Complete Setup and Foundational phases.
+2. Deliver User Story 1 and validate the minimal app shell and API bootstrap.
+3. Deliver User Story 2, writing its behavior tests before implementing endpoints.
+4. Deliver User Story 3 and verify CI and local quality-check independence.
+5. Complete the scope audit and run every final verification command plus the clean-start quickstart.
 
 ## Notes
 
-- [P] tasks = different files or independent validation areas; they can run in parallel.
-- [Story] labels map tasks to specific user stories for traceability and independent delivery.
-- Each user story is intentionally small and independently testable.
-- Validation tasks for lint, format:check, typecheck, test, and build are explicit and required.
-- No feature-implementation work beyond the application foundation is included in this task set.
+- [P] marks tasks that can proceed in parallel without conflicting file ownership.
+- Each implementation responsibility has one owning task; tests and final verification are not repeated across phases.
+- No authentication, profile or document domain, sharing, or resume-generation features are in scope.
